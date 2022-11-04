@@ -2,7 +2,7 @@
 
 
 # 1. File information
-input="src/space.c"
+input="src/minecraftclone.c"
 output="build/build"
 
 # 2. Flags

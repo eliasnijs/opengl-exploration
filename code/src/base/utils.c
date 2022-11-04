@@ -23,14 +23,14 @@ readfile(const char *path)
   FILE *f = fopen(path, "rb");
   if (!f)
   {
-    logerr("failed to open file %s", path);
+    DebugLogError("failed to open file %s", path);
     return 0x0;
   }
   uint32 len = filelen(f);
   char *buffer = (char *)malloc(len);
   if (!buffer)
   {
-    logerr("failed to allocate memory");
+    DebugLogError("failed to allocate memory");
     return 0x0;
   }
   fread(buffer, 1, len, f);
