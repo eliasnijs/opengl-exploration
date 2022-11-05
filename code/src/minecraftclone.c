@@ -20,6 +20,7 @@
 #include "engine/shader.c"
 #include "engine/camera.h"
 #include "engine/camera.c"
+#include "engine/textures.c"
 
 #include "config.h"
 
@@ -31,7 +32,7 @@ real32 last_x = 640.0f/2;
 real32 last_y = 480.0f/2;
 
 Camera camera;
-Shader planks_shader;
+Shader cube_shader;
 Shader iron_shader;
 Shader lamp_shader;
 
@@ -88,11 +89,10 @@ process_input(GLFWwindow *window)
 
   if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
   {
-    shader_die(&planks_shader);
+    shader_die(&cube_shader);
     shader_die(&lamp_shader);
-    shader_init("shaders/planks.vs", "shaders/planks.fs", &planks_shader);
+    shader_init("shaders/cube.vs", "shaders/cube.fs", &cube_shader);
     shader_init("shaders/lamp.vs", "shaders/lamp.fs", &lamp_shader);
-    shader_init("shaders/iron.vs", "shaders/iron.fs", &lamp_shader);
   }
 
 }
@@ -117,6 +117,7 @@ main(int32 argc, char *argv[])
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
   glfwSetCursorPosCallback(window, mouse_callback);
   glfwSetScrollCallback(window, scroll_callback);
+
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   /* load opengl function pointers */
@@ -126,79 +127,17 @@ main(int32 argc, char *argv[])
     return -1; /* early return statment */
   }
 
-  /* configure opengl viewport */
-  glViewport(0,0,width_w,height_w);
-
   /* set global opengl state */
   glEnable(GL_DEPTH_TEST);
 
   /* load textures */
-  int32 width, height, nr_of_channels;
-  uint8 *data;
+  uint32 texture_cube = texture_load("resources/container2.png");
 
-  uint32 texture_planks;
-  char *texture_planks_path = "resources/planks.png";
-  glGenTextures(1, &texture_planks);
-  glBindTexture(GL_TEXTURE_2D, texture_planks);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  stbi_set_flip_vertically_on_load(true);
-  data = stbi_load(texture_planks_path, &width, &height, &nr_of_channels, 0);
-  if (data)
-  {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
-                 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-  }
-  else
-  {
-    DebugLogError("failed to load texture %s", texture_planks_path);
-  }
-  stbi_image_free(data);
-
-  char *texture_lamp_path = "resources/lamp.png";
-  uint32 texture_lamp;
-  glGenTextures(1, &texture_lamp);
-  glBindTexture(GL_TEXTURE_2D, texture_lamp);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  stbi_set_flip_vertically_on_load(true);
-  data = stbi_load(texture_lamp_path, &width, &height, &nr_of_channels, 0);
-  if (data)
-  {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-  }
-  else
-  {
-    DebugLogError("failed to load texture %s", texture_lamp_path);
-  }
-  stbi_image_free(data);
-
-  char *texture_iron_path = "resources/iron.png";
-  uint32 texture_iron;
-  glGenTextures(1, &texture_iron);
-  glBindTexture(GL_TEXTURE_2D, texture_iron);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  stbi_set_flip_vertically_on_load(true);
-  data = stbi_load(texture_iron_path, &width, &height, &nr_of_channels, 0);
-  if (data)
-  {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-  }
-  else
-  {
-    DebugLogError("failed to load texture %s", texture_iron_path);
-  }
-  stbi_image_free(data);
+  /* initialise shaders */
+  shader_init("shaders/cube.vs", "shaders/cube.fs", &cube_shader);
+  shader_use(&cube_shader);
+  shader_set_int32(&cube_shader,"material.diffuse",0);
+  shader_init("shaders/lamp.vs", "shaders/lamp.fs", &lamp_shader);
 
   /* initialise vertex objects */
   #include "models.h"
@@ -213,9 +152,9 @@ main(int32 argc, char *argv[])
   glBindVertexArray(cube_VAO);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8*sizeof(real32), (void *)0);
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8*sizeof(real32), (void *)(3*sizeof(real32)));
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8*sizeof(real32), (void *)(3*sizeof(real32)));
   glEnableVertexAttribArray(1);
-  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8*sizeof(real32), (void *)(5*sizeof(real32)));
+  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8*sizeof(real32), (void *)(6*sizeof(real32)));
   glEnableVertexAttribArray(2);
 
   uint32 lamp_VAO;
@@ -223,36 +162,23 @@ main(int32 argc, char *argv[])
   glBindVertexArray(lamp_VAO);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8*sizeof(real32), (void *)0);
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8*sizeof(real32), (void *)(3*sizeof(real32)));
-  glEnableVertexAttribArray(1);
-  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8*sizeof(real32), (void *)(5*sizeof(real32)));
-  glEnableVertexAttribArray(2);
-
-  /* initialise shaders */
-  shader_init("shaders/iron.vs", "shaders/iron.fs", &iron_shader);
-  shader_init("shaders/planks.vs", "shaders/planks.fs", &planks_shader);
-  shader_init("shaders/lamp.vs", "shaders/lamp.fs", &lamp_shader);
 
   /* initiliase camera */
-  vec3 camera_start_pos = {-3.0f, 0.0f, -3.0f};
+  vec3 camera_start_pos = {-3.0f, 1.0f, -3.0f};
   vec3 camera_start_up = {0.0f, 1.0f, 0.0f};
   camera_init(&camera, camera_start_pos, camera_start_up,
               YAW_STD, PITCH_STD,
               SPEED_STD, SENSITIVITY_STD, true, ZOOM_STD);
 
-  /* main loop */
-  vec3 cube_positions[] = {
+  /* intialise other */
+  vec3 cube_data[] = {
+    // pos
     {0.0f, 0.0f, 0.0f},
-    {0.0f, -1.0f, 0.0f},
-    {0.0f, 1.0f, 0.0f},
-    {-1.0f, 0.0f, 0.0f},
-    {1.0f, 0.0f, 0.0f},
-    {0.0f, 0.0f, -1.0f},
-    {0.0f, 0.0f, 1.0f},
   };
 
+  vec4 background_color = {10, 10, 10};
 
-
+  /* main loop */
   while (!glfwWindowShouldClose(window))
   {
     /* time management */
@@ -260,89 +186,71 @@ main(int32 argc, char *argv[])
     delta_time = current_frame - last_frame;
     last_frame = current_frame;
 
-    /* inpuut */
+    /* input */
     process_input(window);
 
     /* render */
-    glClearColor(40.0f/255, 40.0f/255, 40.0f/255, 1.0f);
+    glClearColor(background_color[0]/255, background_color[1]/255,
+                 background_color[2]/255, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    /* bind textures */
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture_planks);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, texture_lamp);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, texture_iron);
+    glBindTexture(GL_TEXTURE_2D, texture_cube);
 
+    /* object properties */
+    vec3 material_specular = {0.5f, 0.5f, 0.5f};
+    real32 material_shininess = 64.0f;
+
+    vec3 lamp_pos = {1.2f, 1.0f, 2.0f};
+    vec3 lamp_ambient = {0.2f, 0.2f, 0.2f};
+    vec3 lamp_diffuse = {0.5f, 0.5f, 0.5f};
+    vec3 lamp_specular = {1.0f, 1.0f, 1.0f};
+
+    /* calculate transform matrices */
     mat4x4 M_projection, M_view;
     mat4x4_perspective(M_projection, deg_to_rad(camera.zoom), width_w/height_w, 0.1f, 100.0f);
     camera_get_M_view(&camera, M_view);
 
+    /* load shaders */
 
-    vec3 ambientlight_color = {1.0f, 1.0f, 1.0f};
-    vec3 light_pos = {
-      10.0f * sin(glfwGetTime()),
-      0.0f,
-      10.0f * cos(glfwGetTime()),
-    };
-
-    mat4x4 M_model_lamp;
-    mat4x4_identity(M_model_lamp);
-    mat4x4_translate(M_model_lamp,  light_pos[0], light_pos[1], light_pos[2]);
-    mat4x4_scale(M_model_lamp, M_model_lamp, 0.1f);
+    shader_use(&cube_shader);
+    shader_set_vec3(&cube_shader, "view_pos", camera.pos);
+    shader_set_vec3(&cube_shader, "material.specular", material_specular);
+    shader_set_real32(&cube_shader, "material.shininess", material_shininess);
+    shader_set_vec3(&cube_shader, "light.position", lamp_pos);
+    shader_set_vec3(&cube_shader, "light.ambient", lamp_ambient);
+    shader_set_vec3(&cube_shader, "light.diffuse", lamp_diffuse);
+    shader_set_vec3(&cube_shader, "light.specular", lamp_specular);
+    shader_set_mat4x4(&cube_shader, "M_projection", M_projection);
+    shader_set_mat4x4(&cube_shader, "M_view", M_view);
 
     shader_use(&lamp_shader);
-    shader_set_int32(&lamp_shader, "texture1", 1);
     shader_set_mat4x4(&lamp_shader, "M_projection", M_projection);
     shader_set_mat4x4(&lamp_shader, "M_view", M_view);
-    shader_set_mat4x4(&lamp_shader, "M_model", M_model_lamp);
 
-    glBindVertexArray(lamp_VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    /* render objects */
 
-    for (uint32 i = 0; i < ArrayLength(cube_positions)/2; ++i)
+    shader_use(&cube_shader);
+    for (uint32 i = 0; i < ArrayLength(cube_data); ++i)
     {
-      vec3 obj_color = {1.0f, 1.0f, 1.0f};
-
-      mat4x4 M_model_cube, M_temp_cube;
-      mat4x4_identity(M_temp_cube);
-      mat4x4_translate(M_temp_cube,  cube_positions[i][0], cube_positions[i][1], cube_positions[i][2]);
-      mat4x4_rotate(M_model_cube, M_temp_cube, 0.0f, 1.0f, 0.0f, 0);
-
-      shader_use(&planks_shader);
-      shader_set_int32(&planks_shader, "texture1", 0);
-      shader_set_vec3(&planks_shader, "obj_color", obj_color);
-      shader_set_vec3(&planks_shader, "ambientlight_color", ambientlight_color);
-      shader_set_vec3(&planks_shader, "light_pos", light_pos);
-      shader_set_vec3(&planks_shader, "view_pos", camera.pos);
-      shader_set_mat4x4(&planks_shader, "M_projection", M_projection);
-      shader_set_mat4x4(&planks_shader, "M_view", M_view);
-      shader_set_mat4x4(&planks_shader, "M_model", M_model_cube);
+      mat4x4 M_model;
+      mat4x4_translate(M_model, cube_data[i][0], cube_data[i][1], cube_data[i][2]);
+      mat4x4_scale(M_model, M_model, 1.0f);
+      shader_set_mat4x4(&cube_shader, "M_model", M_model);
 
       glBindVertexArray(cube_VAO);
       glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 
-    for (uint32 i = ArrayLength(cube_positions)/2; i < ArrayLength(cube_positions); ++i)
+    shader_use(&lamp_shader);
     {
-      vec3 obj_color = {1.0f, 1.0f, 1.0f};
+      mat4x4 M_model;
+      mat4x4_translate(M_model, lamp_pos[0], lamp_pos[1], lamp_pos[2]);
+      mat4x4_scale_aniso(M_model, M_model, 0.2f, 0.2f, 0.2f);
+      shader_set_mat4x4(&lamp_shader, "M_model", M_model);
 
-      mat4x4 M_model_cube, M_temp_cube;
-      mat4x4_identity(M_temp_cube);
-      mat4x4_translate(M_temp_cube,  cube_positions[i][0], cube_positions[i][1], cube_positions[i][2]);
-      mat4x4_rotate(M_model_cube, M_temp_cube, 0.0f, 1.0f, 0.0f, 0);
-
-      shader_use(&iron_shader);
-      shader_set_int32(&iron_shader, "texture1", 2);
-      shader_set_vec3(&iron_shader, "obj_color", obj_color);
-      shader_set_vec3(&iron_shader, "ambientlight_color", ambientlight_color);
-      shader_set_vec3(&iron_shader, "light_pos", light_pos);
-      shader_set_vec3(&iron_shader, "view_pos", camera.pos);
-      shader_set_mat4x4(&iron_shader, "M_projection", M_projection);
-      shader_set_mat4x4(&iron_shader, "M_view", M_view);
-      shader_set_mat4x4(&iron_shader, "M_model", M_model_cube);
-
-      glBindVertexArray(cube_VAO);
+      glBindVertexArray(lamp_VAO);
       glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 
@@ -356,7 +264,7 @@ main(int32 argc, char *argv[])
   glDeleteBuffers(1, &VBO);
 
   shader_die(&lamp_shader);
-  shader_die(&planks_shader);
+  shader_die(&cube_shader);
   shader_die(&iron_shader);
 
   glfwTerminate();

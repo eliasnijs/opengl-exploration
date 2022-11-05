@@ -8,7 +8,7 @@ output="build/build"
 # 2. Flags
 
 # 2.1 Debug Flags
-debug_dflags="-D_POSIX_C_SOURCE=199309L -DENABLE_ASSERT=1 -DENABLE_DEBUG_MESSAGES=1 -DTU_ENABLE_ASSERT_MSG=1 -DENABLE_TERM_COLOR"
+debug_dflags="-D_POSIX_C_SOURCE=199309L -DENABLE_ASSERT=1 -DENABLE_DEBUGLOG"
 debug_wflags="-Wno-unused-variable -Wno-unused-function"
 debug_flags="-std=c99 -g -Wall ${debug_wflags} ${debug_dflags}"
 
