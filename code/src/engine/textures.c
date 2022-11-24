@@ -39,3 +39,5 @@ texture_load(const char *path)
   stbi_image_free(data);
   return texture_id;
 }
+
+

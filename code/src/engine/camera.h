@@ -1,10 +1,10 @@
 /* constants */
 global_variable const real32 YAW_STD          =  45.0f;
 global_variable const real32 PITCH_STD        =   0.0f;
-global_variable const real32 SPEED_STD        =   2.5f;
+global_variable const real32 SPEED_STD        =  10.0f;
 global_variable const real32 SENSITIVITY_STD  =   0.1f;
 global_variable const real32 ZOOM_STD         =  45.0f;
-global_variable const real32 PITCH_CLAMP      =  89.0f;
+global_variable const real32 PITCH_CLAMP      =  90.0f;
 global_variable const real32 ZOOM_CLAMP_LB    =   1.0f;
 global_variable const real32 ZOOM_CLAMP_UB    =  45.0f;
 

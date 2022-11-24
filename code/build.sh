@@ -20,6 +20,7 @@ release_flags="-std=c99 -O3 -Wall ${release_wflags} ${release_dflags}"
 # 3. Linker
 libglad="-L libs/glad/bin -lglad"
 libglfw="-L libs/glfw/bin/src -lglfw3"
+libassmip="-L libs/assimp/bin -lassimp"
 libs="$libglfw $libglad -ldl -pthread -lm"
 
 # 4. Other files to compile

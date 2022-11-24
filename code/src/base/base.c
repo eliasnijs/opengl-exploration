@@ -36,6 +36,8 @@ typedef int64    bool64;
 #define ClampTop(a,b)   (Min((a),(b)))
 #define Abs(a)          (((a)<0)?(-(a)):(a))
 
+#define OffsetOf(t, e) ((size_t)&(((t *)0)->e))
+
 #define AssertBreak() (*(int *)0 = 0)
 #if ENABLE_ASSERT
 #define Assert(c) Stmnt( if (!(c)){ AssertBreak(); })
