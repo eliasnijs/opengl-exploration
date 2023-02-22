@@ -44,7 +44,6 @@ internal void scroll_callback(GLFWwindow *window, real64 xoffset, real64 yoffset
 internal void mouse_callback(GLFWwindow* window, real64 xpos, real64 ypos);
 internal void process_input(GLFWwindow *window);
 internal void framebuffer_size_callback(GLFWwindow *window, int32 w, int32 h);
-int32 main(int32 argc, char *argv[]);
 
 /* function implementations */
 internal void
@@ -89,7 +88,6 @@ process_input(GLFWwindow *window)
     camera_handle_keyboard_input(&camera, LEFT, delta_time);
   if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
     camera_handle_keyboard_input(&camera, RIGHT, delta_time);
-
 }
 
 int32
@@ -130,7 +128,7 @@ main(int32 argc, char *argv[])
 
   /* load textures */
   uint32 texture_cube_color = texture_load("resources/grass.png");
-  uint32 texture_cube_specular = texture_load("resources/sand_specular.png");
+  uint32 texture_cube_specular = texture_load("resources/grass_specular.png");
   uint32 texture_lamp_color = texture_load("resources/lamp.png");
 
   /* initialise shaders */
@@ -223,6 +221,7 @@ main(int32 argc, char *argv[])
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     /* bind textures */
+
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture_cube_color);
     glActiveTexture(GL_TEXTURE1);
@@ -293,10 +292,10 @@ main(int32 argc, char *argv[])
     shader_set_vec3(&cube_shader,   "viewpos",            camera.pos);
     shader_set_real32(&cube_shader, "material.shininess", material_shininess);
     /* load cube shader: lighting */
-    shader_set_vec3(&cube_shader, "dirlight.direction", sun_direction);
-    shader_set_vec3(&cube_shader, "dirlight.ambient",   sun_ambient);
-    shader_set_vec3(&cube_shader, "dirlight.diffuse",   sun_diffuse);
-    shader_set_vec3(&cube_shader, "dirlight.specular",  sun_specular);
+    shader_set_vec3(&cube_shader,   "dirlight.direction", sun_direction);
+    shader_set_vec3(&cube_shader,   "dirlight.ambient",   sun_ambient);
+    shader_set_vec3(&cube_shader,   "dirlight.diffuse",   sun_diffuse);
+    shader_set_vec3(&cube_shader,   "dirlight.specular",  sun_specular);
 
     shader_set_vec3(&cube_shader,   "pointlights[0].position",  pointlight_positions[0]);
     shader_set_vec3(&cube_shader,   "pointlights[0].ambient",   pointlight0_ambient);
@@ -370,7 +369,7 @@ main(int32 argc, char *argv[])
     {
       mat4x4 M_model;
       mat4x4_translate(M_model, pointlight_positions[i][0], pointlight_positions[i][1], pointlight_positions[i][2]);
-      mat4x4_scale_aniso(M_model, M_model, 0.2f, 0.2f, 0.2f);
+      mat4x4_scale_aniso(M_model, M_model, 1.0f, 1.0f, 1.0f);
 
       shader_set_vec3(&lamp_shader, "diffuse", pointlight_diffuse[i]);
       shader_set_mat4x4(&lamp_shader, "M_model", M_model);

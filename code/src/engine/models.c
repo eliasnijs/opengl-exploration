@@ -1,4 +1,3 @@
-
 typedef struct Vertex Vertex;
 struct Vertex
 {
@@ -14,7 +13,7 @@ struct Texture
   char *type;
 };
 
-typedef struct Mesh Mesh;
+typedef struct Mesh
 struct Mesh
 {
   Vertex  *vertices;
@@ -65,8 +64,4 @@ mesh_setup(Mesh *mesh)
 
   glBindVertexArray(0);
 }
-
-internal void
-mesh_render()
-...
 

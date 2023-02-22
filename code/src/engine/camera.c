@@ -85,26 +85,3 @@ camera_handle_mouse_zoom_input(Camera *camera, real32 yoffset)
 {
   camera->zoom = Clamp(ZOOM_CLAMP_LB, camera->zoom - yoffset, ZOOM_CLAMP_UB);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

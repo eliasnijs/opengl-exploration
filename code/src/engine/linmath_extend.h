@@ -1,10 +1,4 @@
 internal void
-vec3_normalise()
-{
-
-}
-
-internal void
 vec3_print(vec3 v)
 {
   printf("{");
